@@ -101,7 +101,7 @@ vector<vector<pair<Bin, bool>>> makeMatrix(int size, vector<Bin> input)
     }
     return ret;
 }
-void compress(int size, vector<Bin> bins, vector<Bin>& pi)
+void findPI(int size, vector<Bin> bins, vector<Bin>& pi)
 {
     // cout << "start!" << endl;
     if (bins.empty()) return;
@@ -137,10 +137,45 @@ void compress(int size, vector<Bin> bins, vector<Bin>& pi)
             }
         }
     }
-    compress(size, ret, pi);
+    findPI(size, ret, pi);
+}
+vector<Bin> findEPI(const vector<Bin>& pi, const vector<int>& input)
+{
+    vector<Bin> ret;
+    for (int i = 2; i < input.size(); i++) {
+        // cout << "num: " << input[i] << endl;
+        int cnt = 0;
+        int n = input[i];
+        Bin bin;
+        for (const auto& b : pi) {
+            for (const auto& num : b.getNums()) {
+                bool ok = false;
+                if (num == n) {
+                    bin = b;
+                    cnt++;
+                    break;
+                }
+            }
+        }
+        if (cnt == 1) {
+            bool ok = true;
+            for (const auto& b : ret) {
+                if (bin == b)
+                    ok = false;
+            }
+            // cout << "push_back:" << bin << endl;
+            if (ok)
+                ret.push_back(bin);
+        }
+    }
+    return ret;
 }
 void print(vector<Bin>& bins)
 {
+    if (bins.empty()) {
+        cout << "bins is empty.\n";
+        return;
+    }
     cout << '[';
     int i;
     for (i = 0; i < bins.size()-1; i++) {
@@ -170,15 +205,22 @@ vector<string> solution(vector<int> minterm) {
         bins.emplace_back(size, minterm[i+2]); //empalce_back: 생성자 호출 가능
     // print(bins);
     vector<Bin> ret;
-    compress(size, bins, ret);
+    findPI(size, bins, ret);
     sort(ret.begin(), ret.end(), binCompare);
-    // print(ret);
     vector<string> pi = toStringVec(ret);
+    // print(ret);
+
+    vector<Bin> ret2 = findEPI(ret, minterm);
+    vector<string> epi = toStringVec(ret2);
+    // print(ret2);
+    pi.push_back("EPI");
+    pi.insert(pi.end(), epi.begin(), epi.end());
     return pi;
 }
 int main()
 {
-    vector<int> input = { 6, 32, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 };
+    vector<int> input = { 3, 6, 0, 1, 2, 5, 6, 7 };
+    // vector<int> input = { 6, 32, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 };
     // vector<int> input = { 4, 16, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
 
     // vector<int> input = { 5, 32, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 };
