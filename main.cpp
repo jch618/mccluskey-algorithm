@@ -2,27 +2,22 @@
 #include <string>
 #include <vector>
 #include <algorithm>
-#include "Bin.h"
+#include "myfunc.h"
+#include "bin.h"
+#include "testfunc.h"
+// #include "testfunc.h"
 using namespace std;
-vector<string> solution(vector<int> minterm) {
-    int size = minterm[0];
-    int N = minterm[1];
-    vector<Bin> bins;
-    for (int i = 0; i < N; i++)
-        bins.emplace_back(size, minterm[i+2]); //empalce_back: 생성자 호출 가능
-    // print(bins);
-    vector<Bin> ret;
-    findPI(size, bins, ret);
-    sort(ret.begin(), ret.end(), binCompare);
-    vector<string> pi = toStringVec(ret);
-    // print(ret);
 
-    vector<Bin> ret2 = findEPI(ret, minterm);
-    vector<string> epi = toStringVec(ret2);
-    // print(ret2);
-    pi.push_back("EPI");
-    pi.insert(pi.end(), epi.begin(), epi.end());
-    return pi;
+vector<Bin> callSolve(const vector<int>& input)
+{
+    int size = input[0];
+    vector<int> minterms(input.begin()+2, input.end());
+    vector<Bin> bins, ret;
+    for (const auto& m : minterms) {
+        bins.emplace_back(size, m);
+    }
+    startSolve(size, bins, minterms, ret);
+    return ret;
 }
 int main()
 {
@@ -31,14 +26,14 @@ int main()
     vector<int> input3 = { 3, 8, 0, 1, 2, 3, 4, 5, 6, 7};
     vector<int> input4 = { 1, 2, 1, 0 };
     vector<int> input5 = { 0, 0 };
-    vector<string> ret = solution(input);
-    vector<string> ret2 = solution(input2);
-    vector<string> ret3 = solution(input3);
-    vector<string> ret4 = solution(input4);
-    vector<string> ret5 = solution(input5);
-    printStringVec(ret);
-    printStringVec(ret2);
-    printStringVec(ret3);
-    printStringVec(ret4);
-    printStringVec(ret5);
+    vector<int> input6 = { 6, 29, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 };
+    vector<int> input7 = { 4, 8, 0, 4, 8, 10, 12, 11, 13, 15 };
+
+    // callSolve(input);
+    // callSolve(input2);
+    // callSolve(input3);
+    // callSolve(input4);
+    // callSolve(input5);
+    callSolve(input6);
+    // callSolve(input7);
 }

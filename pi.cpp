@@ -1,7 +1,8 @@
 #include <iostream>
-#include <vector>
 #include <string>
+#include <vector>
 #include <algorithm>
+#include <set>
 using namespace std;
 
 class Bin {
@@ -11,18 +12,21 @@ friend bool operator==(const Bin& b1, const Bin& b2);
 friend bool operator!=(const Bin& b1, const Bin& b2);
 friend bool areCompressible(const Bin& b1, const Bin& b2);
 friend bool binCompare(const Bin& b1, const Bin& b2);
+friend bool isIncluded(const Bin& b1, const Bin& b2);
     int _size;
     string _binary;
     vector<string> _binarys;
-    vector<int> _nums;
+    //vector<int> _nums;
+    set<int> _nums;
     int _one;
 public:
-    Bin(int s=0, int n=0): _size(s), _one(0) { _nums.push_back(n); setBinary(n); }
+    Bin(int s=0, int n=0): _size(s), _one(0) { _nums.insert(n); setBinary(n); }
     Bin(const Bin& b): _size(b._size), _binary(b._binary), _binarys(b._binarys), _nums(b._nums), _one(b._one) {}
     void setBinary(int n);
     string getBinary() const;
     vector<string> getBinarys() const { return _binarys; }
-    vector<int> getNums() const { return _nums; }
+    // vector<int> getNums() const { return _nums; }
+    set<int> getNums() const { return _nums; }
     int getSize() const { return _size; }
     int getCircleSize() const { return _binarys.size(); }
     int one() const { return _one; }
@@ -50,7 +54,9 @@ Bin& Bin::operator+=(const Bin& b)
         }
     // vector 이어 붙이기
     _binarys.insert(_binarys.end(), b._binarys.begin(), b._binarys.end());
-    _nums.insert(_nums.end(), b._nums.begin(), b._nums.end());
+    // _nums.insert(_nums.end(), b._nums.begin(), b._nums.end());
+    for (const auto& n : b._nums)
+        _nums.insert(n);
     return *this;
 }
 string Bin::getBinary() const
@@ -114,7 +120,7 @@ void findPI(int size, vector<Bin> bins, vector<Bin>& pi)
                 if (areCompressible(p1.first, p2.first)) {
                     bool ok = true;
                     Bin bin = p1.first + p2.first;
-                    for (const auto& b : ret) { //중복처리: hashmap이 나을듯??
+                    for (const auto& b : ret) { // 중복일 경우 추가하지 않음
                         if (b == bin) {
                             ok = false;
                             break;
@@ -142,15 +148,15 @@ void findPI(int size, vector<Bin> bins, vector<Bin>& pi)
 vector<Bin> findEPI(const vector<Bin>& pi, const vector<int>& input)
 {
     vector<Bin> ret;
-    for (int i = 2; i < input.size(); i++) {
+    for (int i = 2; i < input.size(); i++) { // input == [ size, minterm, m1(int), m2, ... ]
         // cout << "num: " << input[i] << endl;
         int cnt = 0;
         int n = input[i];
         Bin bin;
-        for (const auto& b : pi) {
+        for (const auto& b : pi) { // 해당 minterm이 pi 원소들 중 하나에만 속하는 수인지 확인한다.
             for (const auto& num : b.getNums()) {
                 bool ok = false;
-                if (num == n) {
+                if (num == n) { 
                     bin = b;
                     cnt++;
                     break;
@@ -197,6 +203,17 @@ vector<string> toStringVec(vector<Bin> bins)
     }
     return vec;
 }
+bool isIncluded(const Bin& b1, const Bin& b2) // Row dominance를 위한 코드
+{
+    if (b1.getCircleSize() < b2.getCircleSize()) return false;
+    bool ok = true;
+    for (const auto& n : b2._nums)
+        if (b1._nums.find(n) != b1._nums.end()) {
+            ok = false;
+            break;
+        }
+    return ok;
+}
 vector<string> solution(vector<int> minterm) {
     int size = minterm[0];
     int N = minterm[1];
@@ -208,23 +225,46 @@ vector<string> solution(vector<int> minterm) {
     findPI(size, bins, ret);
     sort(ret.begin(), ret.end(), binCompare);
     vector<string> pi = toStringVec(ret);
-    // print(ret);
+    print(ret);
 
     vector<Bin> ret2 = findEPI(ret, minterm);
     vector<string> epi = toStringVec(ret2);
-    // print(ret2);
+    print(ret2);
     pi.push_back("EPI");
     pi.insert(pi.end(), epi.begin(), epi.end());
     return pi;
 }
 int main()
 {
-    vector<int> input = { 3, 6, 0, 1, 2, 5, 6, 7 };
+    // vector<int> input = { 3, 6, 0, 1, 2, 5, 6, 7 };
     // vector<int> input = { 6, 32, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 };
-    // vector<int> input = { 4, 16, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
+    // // vector<int> input = { 4, 16, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
 
-    // vector<int> input = { 5, 32, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 };
+    // // vector<int> input = { 5, 32, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 };
+
+    // vector<string> ret = solution(input);
+    // printStringVec(ret);
+
+    vector<int> input = { 3, 6, 0, 1, 2, 5, 6, 7 };
+    vector<int> input2 = { 3, 4, 0, 1, 2, 3 };
+    vector<int> input3 = { 3, 8, 0, 1, 2, 3, 4, 5, 6, 7};
+    vector<int> input4 = { 1, 2, 1, 0 };
+    vector<int> input5 = { 0, 0 };
+    vector<int> input6 = { 6, 29, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 };
+    vector<int> input7 = { 4, 8, 0, 4, 8, 10, 12, 11, 13, 15 };
 
     vector<string> ret = solution(input);
+    vector<string> ret2 = solution(input2);
+    vector<string> ret3 = solution(input3);
+    vector<string> ret4 = solution(input4);
+    vector<string> ret5 = solution(input5);
+    vector<string> ret6 = solution(input6);
+    vector<string> ret7 = solution(input7);
     printStringVec(ret);
+    printStringVec(ret2);
+    printStringVec(ret3);
+    printStringVec(ret4);
+    printStringVec(ret5);
+    printStringVec(ret6);
+    printStringVec(ret7);
 }
