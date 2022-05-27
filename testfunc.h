@@ -13,9 +13,11 @@ void testFindColumnDominance();
 
 void solve(std::vector<Bin>& pi, std::vector<int>& minterms, std::vector<Bin>& ret);
 void startSolve(int size, std::vector<Bin>& bins, std::vector<int>& minterms, std::vector<Bin>& ret);
+std::vector<std::string> solution(std::vector<int> minterm);
 
 void print(const std::vector<Bin>& bins);
 void print(const std::vector<int>& minterms);
+void print(const std::set<int>& s);
 void printStringVec(std::vector<std::string>& vec);
 void printPIAndMinterms(const std::vector<Bin>& pi, const std::vector<int>& minterms);
 void printTable(const std::vector<Bin>& bins, const std::vector<int>& minterms);

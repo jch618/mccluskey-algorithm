@@ -5,8 +5,8 @@ using namespace std;
 
 void solve(vector<Bin>& pi, vector<int>& minterms, vector<Bin>& ret)
 {
+    sort(pi.begin(), pi.end(), binCompareByString);
     if (minterms.empty()) {
-        cout << "end...\n\n\n";
         return;
     }
     cout << "------start------------------\n";
@@ -24,19 +24,20 @@ void solve(vector<Bin>& pi, vector<int>& minterms, vector<Bin>& ret)
     cout << "nepi:"; print(nepi);
 
     cout << "-----------------------------\n";
-    cout << "findFindCoulmnDominance start:\n";
+    cout << "coulmn dominance start:\n";
     printPIAndMinterms(nepi, minterms);
     findColumnDominance(nepi, minterms); // column dominance에서 다른 포함을 하는 쪽의 minterm을 제거
     cout << "after column dominance minterms: "; print(minterms);
 
     cout << "-----------------------------\n";
     cout << "row dominance:\n"; printTable(nepi, minterms);
-    findRowDominance(nepi, epi); // row dominance에서 포함 당하는 쪽의 pi를 후보에서 제거
-    cout << "after row dominance minterms: "; print(minterms);
+    findRowDominance(nepi, minterms); // row dominance에서 포함 당하는 쪽의 pi를 후보에서 제거
+    cout << "after row dominance nepi: "; print(nepi);
     if (minterms.size() == mintermSize) {
-        cout << "end...\n\n\n";
         return; // 더이상 최적화 될 수 없는 상태.
     }
+    ret.insert(ret.end(), epi.begin(), epi.end());
+    sort(ret.begin(), ret.end(), binCompareByString);
     solve(nepi, minterms, ret);
 }
 
@@ -44,13 +45,19 @@ void startSolve(int size, vector<Bin>& bins, vector<int>& minterms, vector<Bin>&
 {
     vector<Bin> pi;
     findPI(size, bins, pi);
+    // for (const auto& b : pi) {
+    //     cout << b << ": "; print(b.getNums());
+    // }
+    cout << "{---start solve-------------\n";
     solve(pi, minterms, ret);
+    cout << "ret: "; print(ret);
+    cout << "------end solve------------}\n\n\n";
 }
 
 void print(const vector<Bin>& bins)
 {
     if (bins.empty()) {
-        cout << "bins is empty.\n";
+        cout << "empty.\n";
         return;
     }
     cout << '[';
@@ -69,9 +76,17 @@ void print(const vector<int>& minterms)
     cout << '\n';
 }
 
+void print(const set<int>& s)
+{
+    for (const auto& n : s) {
+        cout << n << ", ";
+    }
+    cout << '\n';
+}
+
 void printPIAndMinterms(const vector<Bin>& pi, const vector<int>& minterms)
 {
-    cout << "nepi: "; print(pi);
+    cout << "pi: "; print(pi);
     cout << "minterms: "; print(minterms);
 }
 
@@ -84,7 +99,8 @@ void printStringVec(vector<string>& vec)
 
 void printTable(const vector<Bin>& bins, const vector<int>& minterms)
 {
-    const int SIZE = (!bins.empty()) ? bins[0].getCircleSize()+1 : 0;
+    const int SIZE = (!bins.empty()) ? bins[0].getSize()+2 : 0;
+    // cout << "SIZE: " << SIZE << '\n';
     cout << left << setw(SIZE) << "";
     for (const auto& m : minterms)
         cout << setw(WIDTH) << m;
@@ -104,7 +120,8 @@ void printTable(const vector<Bin>& bins, const vector<int>& minterms)
 
 void printTable(const map<int, set<string>>& table, const vector<Bin>& bin)
 {
-    const int SIZE = (!bin.empty()) ? bin[0].getCircleSize()+1 : 0;
+    const int SIZE = (!bin.empty()) ? bin[0].getSize()+2 : 0;
+    // cout << "SIZE: " << SIZE << '\n';
     cout << left << setw(WIDTH) << "";
     for (const auto& b : bin) {
         cout << setw(SIZE) << b;
@@ -123,6 +140,7 @@ void printTable(const map<int, set<string>>& table, const vector<Bin>& bin)
     cout << '\n';
 }
 
+// homework
 vector<string> solution(vector<int> minterm) {
     int size = minterm[0];
     int N = minterm[1];

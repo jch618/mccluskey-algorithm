@@ -13,12 +13,9 @@ std::vector<Bin> findEPI(const std::vector<Bin>& pi, const std::vector<int>& inp
 std::vector<Bin> findNEPI(const std::vector<Bin>& pi, const std::vector<Bin>& epi);
 
 std::vector<std::string> toStringVec(const std::vector<Bin>& bins);
-std::vector<std::string> solution(std::vector<int> minterm);
 //
 void refineMinterms(const std::vector<Bin>& except, std::vector<int>& minterms);
-void findRowDominance(std::vector<Bin>& bins, std::vector<Bin>& ret);
+bool isRowDominance(const Bin& b1, const Bin& b2, const std::vector<int>& minterms);
+void findRowDominance(std::vector<Bin>& bins, const std::vector<int>& minterms);
 void findColumnDominance(std::vector<Bin>& bins, std::vector<int>& minterms);
-
-
-
 #endif

@@ -15,12 +15,12 @@ friend bool operator==(const Bin& b1, const Bin& b2);
 friend bool operator!=(const Bin& b1, const Bin& b2);
 friend bool areCompressible(const Bin& b1, const Bin& b2);
 friend bool binCompareByString(const Bin& b1, const Bin& b2);
-// friend bool isIncluded(const Bin& b1, const Bin& b2);
 friend void refineMinterms(const std::vector<Bin>& except, std::vector<int>& minterms);
 friend void printTable(const std::vector<Bin>& bins, const std::vector<int>& minterms);
 friend void printTable(const std::map<int, std::set<std::string>>& table, const std::vector<Bin>& bin);
-friend void findRowDominance(std::vector<Bin>& bins, std::vector<Bin>& epi);
+friend void findRowDominance(std::vector<Bin>& bins, const std::vector<Bin>& minterms);
 friend void findColumnDominance(std::vector<Bin>& bins, std::vector<int>& minterms);
+friend bool isRowDominance(const Bin& b1, const Bin& b2, const std::vector<int>& minterms);
     int _size;
     std::string _binary;
     std::vector<std::string> _binarys;
@@ -37,7 +37,7 @@ public:
     // std::vector<int> getNums() const { return _nums; }
     std::set<int> getNums() const { return _nums; }
     int getSize() const { return _size; }
-    int getCircleSize() const { return _binarys.size(); }
+    int getCircleSize() const { return _nums.size(); }
     int one() const { return _one; }
     Bin& operator+=(const Bin& b);
     char operator[](int index) const { return _binary[index]; }

@@ -148,9 +148,28 @@ inline void setBoolTrue(vector<Bin>& bins)
         b.checked = true;
 }
 
+bool isRowDominance(const Bin& b1, const Bin& b2, const vector<int>& minterms)
+{
+    vector<int> v1(minterms.size()), v2(minterms.size());
+    auto it = set_intersection(b1._nums.begin(), b1._nums.end(), minterms.begin(), minterms.end(), v1.begin()); // 교집합 연산
+    v1.erase(it, v1.end());
+    it = set_intersection(b2._nums.begin(), b2._nums.end(), minterms.begin(), minterms.end(), v2.begin()); // 교집합 연산
+    v2.erase(it, v2.end());
+    
+    // cout << "minterms:"; print(minterms);
+    // cout << "v1:"; print(v1);
+    // cout << "v2:"; print(v2);
+    if (includes(v1.begin(), v1.end(), v2.begin(), v2.end())) {
+        if (v1.size() == v2.size()) {
+            return b1.getCircleSize() >= b2.getCircleSize(); // 더 비용이 낮은 것을 고르기 위해서
+        }
+        return true;
+    }
+    return false;
+}
 // RowDominance에서 포함되는 쪽은 checked가 false가 되며 pi 후보에서 제외된다.
 // 즉, RowDominance에 포함이 안되는 원소들을 리턴한다.
-void findRowDominance(vector<Bin>& bins, vector<Bin>& ret) 
+void findRowDominance(vector<Bin>& bins, const vector<int>& minterms) 
 {
     setBoolTrue(bins);
     for (int i = 0; i < bins.size(); i++) {
@@ -161,9 +180,9 @@ void findRowDominance(vector<Bin>& bins, vector<Bin>& ret)
             if (!bins[j].checked || (i == j)) {
                 continue;
             }
-            if (!bins[j].checked && (bins[i].getCircleSize() >= bins[j].getCircleSize()) // 이미 사라진 건 제외
-                && includes(bins[i]._nums.begin(), bins[i]._nums.end(),
-                            bins[j]._nums.begin(), bins[j]._nums.end())) {
+            // 오류: circleSize가 작아도 포함할 수 있다. -> isRowDominance로 해결
+            // 현재 남은 minterms를 기준으로 사이즈를 비교해야 한다.
+            if (bins[j].checked && isRowDominance(bins[i], bins[j], minterms)) {
                 cout << bins[i] << ">=" << bins[j] << '\n';
                 bins[j].checked = false;
             }
@@ -189,6 +208,7 @@ void refineMinterms(const vector<int>& except, vector<int>& minterms) //epi에 �
         }
     }
 }
+
 // Column dominance에서 포함하는(지배하는) minterm들을 제거한 뒤 리턴한다.
 void findColumnDominance(vector<Bin>& bins, vector<int>& minterms)
 {
@@ -196,28 +216,41 @@ void findColumnDominance(vector<Bin>& bins, vector<int>& minterms)
     map<int, set<string>> table;
     vector<int> except;
     for (const auto& m : minterms) {
-        table.insert(pair<int, set<string>>(m, set<string>()));
+        // table.insert(pair<int, set<string>>(m, set<string>()));
+        table[m] = set<string>();
     }
     for (const auto& b : bins) {
         for (const auto& n : b._nums) {
             if (find(minterms.begin(), minterms.end(), n) != minterms.end()) { // minterms에 속한 원소만 추가해야 한다.
-                table[n].insert(b._binary); // binary로 bin객체 구분. 어차피 필요없는 minterm 원소만 골라내면 된다.
+                table[n].insert(b._binary); // binary로 bin객체 구분. 
             }
         }
     }
     /* */
     printTable(table, bins);
-    for (const auto& p : table) {
-        for (const auto& q : table) {
-            if (p.first == q.first) {
+    auto it1 = table.begin();
+    while (it1 != table.end()) {
+        bool ok = true;
+        for (auto it2 = table.begin(); it2 != table.end(); it2++) {
+            if (it1 == it2) {
                 continue;
             }
-            if (p.second.size() >= q.second.size() 
-                && includes(p.second.begin(), p.second.end(), q.second.begin(), q.second.end())) {
-                /* */
-                cout << p.first << ">=" << q.first << '\n';
-                except.push_back(p.first); // 포함하는 쪽을 없애야 한다.
+            // cout << "it1==" << it1->first << ':'; for (const auto& n : it1->second) cout << n << ' ';
+            // cout << '\n';
+            // cout << "it2==" << it2->first << ':'; for (const auto& n : it2->second) cout << n << ' ';
+            // cout << '\n';
+            auto& a = it1->second;
+            auto& b = it2->second;
+            if (includes(a.begin(), a.end(), b.begin(), b.end())) {
+                ok = false;
+                except.push_back(it1->first);
+                cout << it1->first << ">=" << it2->first << '\n';
+                it1 = table.erase(it1); // 포함하는 원소를 삭제
+                break; // 그 뒤는 확인할 필요 없다.
             }
+        }
+        if (ok) {
+            it1++;
         }
     }
     refineMinterms(except, minterms);
