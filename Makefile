@@ -1,9 +1,8 @@
-#g++ -g -o bin main.cpp myfunc.cpp bin.cpp testfunc.cpp
-quick: bin.cpp main.cpp myfunc.cpp testfunc.cpp bin.h myfunc.h testfunc.h
-	g++ -g -o bin main.cpp myfunc.cpp bin.cpp testfunc.cpp
+# quick: bin.cpp main.cpp myfunc.cpp testfunc.cpp bin.h myfunc.h testfunc.h
+# 	g++ -g -o bin main.cpp myfunc.cpp bin.cpp testfunc.cpp
 
 bin.exe: bin.o main.o myfunc.o testfunc.o 
-	g++ -g -c bin $^
+	g++ -g -o $@ $^
 
 bin.o: bin.cpp bin.h myfunc.h
 	g++ -g -c $<
